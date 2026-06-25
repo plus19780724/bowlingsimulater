@@ -75,6 +75,8 @@ pins.forEach(pin=>{
 </head>
 <body>
 
+<h2>ボウリングラインシミュレーター</h2>
+
 <div>
 立ち位置：<span id="startPos">20</span>枚目
 <br>
@@ -210,13 +212,13 @@ for(let i=5;i<=35;i+=5){
     // スパット
 
 	const spats=[
-		{ board:5, y:550},
-		{ board:10, y:530},
-		{ board:15, y:510},
-		{ board:20, y:490},
-		{ board:25, y:510},
-		{ board:30, y:530},
-		{ board:35, y:550},
+		{ board:5, y:640},
+		{ board:10, y:620},
+		{ board:15, y:600},
+		{ board:20, y:580},
+		{ board:25, y:600},
+		{ board:30, y:620},
+		{ board:35, y:640},
 
 		];
 
@@ -295,8 +297,8 @@ function drawTriangle(x, y, size){
 	ctx.lineWidth = 4;
 
 	ctx.beginPath();
-	ctx.moveTo(0, 700);
-	ctx.lineTo(canvas.width, 700);
+	ctx.moveTo(0, 720);
+	ctx.lineTo(canvas.width, 720);
 	ctx.stroke();
 　　
 
@@ -314,7 +316,7 @@ function drawTriangle(x, y, size){
 
     ctx.lineTo(
         boardToX(targetBoard),
-        500
+        600
     );
 
     ctx.stroke();
@@ -389,7 +391,7 @@ function bowl(){
     const startY = 720;
 
     const spatX = boardToX(targetBoard);
-    const spatY = 500;
+    const spatY = 600;
 
     const dx = spatX - startX;
     const dy = spatY - startY;
