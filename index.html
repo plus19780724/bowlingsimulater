@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ボウリングラインシミュレーター</title>
+
+<style>
+
+body{
+    margin:0;
+    background:#222;
+    color:white;
+    text-align:center;
+    font-family:sans-serif;
+}
+
+h2{
+    margin:10px;
+}
+
+canvas{
+    background:#d6b37a;
+    width:100%;
+    max-width:500px;
+    border:3px solid #555;
+}
+
+.controls{
+    padding:10px;
+}
+
+button{
+    font-size:20px;
+    padding:10px 20px;
+}
+
+input[type=range]{
+    width:250px;
+}
+pins.forEach(pin=>{
+
+    ctx.fillStyle="white";
+
+    ctx.beginPath();
+    ctx.arc(
+        boardToX(pin.board),
+        pin.y,
+        14,
+        0,
+        Math.PI*2
+    );
+    ctx.fill();
+
+    ctx.fillStyle="black";
+    ctx.font="12px sans-serif";
+    ctx.textAlign="center";
+
+    ctx.fillText(
+        pin.num,
+        boardToX(pin.board),
+        pin.y+4
+    );
+
+});
+
+	ctx.strokeStyle="black";
+	ctx.lineWidth=4;
+
+	ctx.beginPath();
+	ctx.moveTo(0,650);
+	ctx.lineTo(canvas.width,650);
+	ctx.stroke();
+</style>
+</head>
+<body>
+
+<h2>ボウリングラインシミュレーター</h2>
+
+<div>
+立ち位置：<span id="startPos">20</span>枚目
+<br>
+狙いスパット：<span id="targetPos">20</span>枚目
+</div>
+
+<canvas id="lane" width="500" height="800"></canvas>
+
+<div class="controls">
+
+回転量
+<br>
+
+<input type="range"
+id="hook"
+min="0"
+max="100"
+value="50">
+
+<br><br>
+
+<button onclick="bowl()">
+投球
+</button>
+
+</div>
+
+<div id="result">
+結果待ち
+</div>
+
+<script>
+
+const canvas=document.getElementById("lane");
+const ctx=canvas.getContext("2d");
+const GUTTER_WIDTH = 50;
+const LANE_LEFT = GUTTER_WIDTH;
+const LANE_RIGHT = canvas.width - GUTTER_WIDTH;
+const LANE_WIDTH = LANE_RIGHT - LANE_LEFT;
+const BOARD_WIDTH = LANE_WIDTH / 39;
+let startBoard=20;
+let targetBoard=20;
+
+let selectingTarget=false;
+
+function boardToX(board){
+    return LANE_LEFT + (board - 0.5) * BOARD_WIDTH;
+}
+
+function drawLane(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+　// 左ガター
+	ctx.fillStyle = "#444";
+
+	ctx.fillRect(
+    	0,
+    	0,
+    	GUTTER_WIDTH,
+    	canvas.height
+	);
+
+　　// 右ガター
+	ctx.fillRect(
+    	canvas.width - GUTTER_WIDTH,
+    	0,
+    	GUTTER_WIDTH,
+    	canvas.height
+	);
+
+
+　　// 境界線
+	ctx.strokeStyle = "#888";
+	ctx.lineWidth = 2;
+	ctx.beginPath();
+	ctx.moveTo(LANE_LEFT,0);
+	ctx.lineTo(LANE_LEFT,canvas.height);
+	ctx.stroke();
+
+	ctx.beginPath();
+	ctx.moveTo(LANE_RIGHT,0);
+	ctx.lineTo(LANE_RIGHT,canvas.height);
+	ctx.stroke(); 
+   
+　　// 板目
+
+for(let i=0;i<=39;i++){
+
+    let x = LANE_LEFT + i * BOARD_WIDTH;
+
+    ctx.beginPath();
+    ctx.moveTo(x,0);
+    ctx.lineTo(x,canvas.height);
+    ctx.strokeStyle="#b48c5a";
+    ctx.stroke();
+}
+　　
+　　// 板番号
+for(let i=5;i<=35;i+=5){
+
+    ctx.fillStyle="gray";
+    ctx.font="12px sans-serif";
+    ctx.textAlign="center";
+
+    ctx.fillText(
+        i,
+        boardToX(i),
+        800
+    );
+}
+
+　　//スタンスドット
+
+	for(let i=10;i<=30;i+=5){
+
+	    ctx.fillStyle="black";
+
+	    ctx.beginPath();
+
+    		ctx.arc(
+        	boardToX(i),
+        	780,
+        	5,
+        	0,
+        	Math.PI*2
+    	);
+
+    	ctx.fill();
+
+	}
+
+    // スパット
+
+	const spats=[
+		{ board:5, y:550},
+		{ board:10, y:530},
+		{ board:15, y:510},
+		{ board:20, y:490},
+		{ board:25, y:510},
+		{ board:30, y:530},
+		{ board:35, y:550},
+
+		];
+
+	ctx.fillStyle="black";//スパットの色
+
+	spats.forEach(spat=>{
+
+    		let size=8;
+   
+
+    	drawTriangle(
+        	boardToX(spat.board),	//Ｘ座標
+        	spat.y,			//Ｙ座標
+        	size			//サイズ
+    	);
+	});
+function drawTriangle(x, y, size){
+
+    	ctx.beginPath();
+
+    	ctx.moveTo(x, y - size);       // 上頂点
+    	ctx.lineTo(x - size, y + size);
+    	ctx.lineTo(x + size, y + size);
+
+    	ctx.closePath();
+
+    	ctx.fill();
+	}
+
+    	
+    // ピン
+
+    const pins=[
+ 	{num:1, board:20, y:240},
+
+	 {num:2, board:15, y:170},
+	 {num:3, board:25, y:170},
+
+	 {num:4, board:10, y:100},
+	 {num:5, board:20, y:100},
+	 {num:6, board:30, y:100},
+
+ 	{num:7, board:5, y:30},
+	 {num:8, board:15, y:30},
+	 {num:9, board:25, y:30},
+ 	{num:10, board:35, y:30}
+	];
+    pins.forEach(pin=>{
+
+    ctx.fillStyle="white";
+
+    ctx.beginPath();
+    ctx.arc(
+        boardToX(pin.board),
+        pin.y,
+        25,
+        0,
+        Math.PI*2
+    );
+    ctx.fill();
+
+    ctx.fillStyle="black";
+    ctx.font="12px sans-serif";
+    ctx.textAlign="center";
+
+    ctx.fillText(
+        pin.num,
+        boardToX(pin.board),
+        pin.y+4
+    );
+
+});
+
+　　// ファウルライン
+	ctx.strokeStyle = "black";
+	ctx.lineWidth = 4;
+
+	ctx.beginPath();
+	ctx.moveTo(0, 700);
+	ctx.lineTo(canvas.width, 700);
+	ctx.stroke();
+　　
+
+    // 選択ライン
+
+    ctx.strokeStyle="red";
+    ctx.lineWidth=3;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        boardToX(startBoard),
+        720
+    );
+
+    ctx.lineTo(
+        boardToX(targetBoard),
+        500
+    );
+
+    ctx.stroke();
+
+    // ボール
+
+    ctx.fillStyle="blue";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        boardToX(startBoard),
+        750,
+        25,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+}
+
+drawLane();
+　
+
+canvas.addEventListener("click",(e)=>{
+
+    const rect=canvas.getBoundingClientRect();
+
+    const x=e.clientX-rect.left;
+
+    const y=e.clientY-rect.top;
+
+    const scale=canvas.width/rect.width;
+
+    const laneX=x*scale;
+
+    const laneY=y*scale;
+
+    let board = Math.floor((laneX - LANE_LEFT)/ BOARD_WIDTH) + 1;
+    board = Math.max(1, Math.min(39, board));
+
+　　
+    if(laneY>650){
+
+        startBoard=board;
+
+        document.getElementById("startPos")
+        .textContent=startBoard;
+
+    }else{
+
+        targetBoard=board;
+
+        document.getElementById("targetPos")
+        .textContent=targetBoard;
+
+    }
+
+    drawLane();
+
+});
+
+function bowl(){
+
+    drawLane();
+
+    ctx.strokeStyle="blue";
+    ctx.lineWidth=3;
+
+    const startX = boardToX(startBoard);
+    const startY = 720;
+
+    const spatX = boardToX(targetBoard);
+    const spatY = 500;
+
+    const dx = spatX - startX;
+    const dy = spatY - startY;
+
+    const impactY = 240;
+    const impactX = spatX + dx * ((impactY - spatY) / dy);
+
+    const impactBoard =
+        (impactX - LANE_LEFT) / BOARD_WIDTH + 0.5;
+
+    ctx.beginPath();
+    ctx.moveTo(startX,startY);
+    ctx.lineTo(spatX,spatY);
+    ctx.lineTo(impactX,impactY);
+    ctx.stroke();
+
+    // 着弾点
+    ctx.fillStyle="red";
+    ctx.beginPath();
+    ctx.arc(
+        impactX,
+        impactY,
+        8,
+        0,
+        Math.PI * 2
+    );
+    ctx.fillStyle="red";
+    ctx.fillText(
+    impactBoard.toFixed(1),
+    impactX,
+    impactY - 15
+);
+    ctx.fill();
+
+    let message="";
+
+if(
+    impactBoard >= 21.5 &&
+    impactBoard <= 23.5
+){
+
+    message="◎ 1-3ポケット";
+
+}else if(
+    impactBoard >= 18.5 &&
+    impactBoard < 21.5
+){
+
+    message="○ 厚目";
+
+}else if(
+    impactBoard > 23.5 &&
+    impactBoard <= 25
+){
+
+    message="○ 薄め";
+
+}else if(
+    impactBoard < 18.5
+){
+
+    message="△ 極薄";
+
+}else{
+
+    message="△ 極厚";
+
+}
+    document.getElementById("result").innerHTML =
+    `
+    立ち位置 ${startBoard}枚目<br>
+    スパット ${targetBoard}枚目<br>
+    着弾位置 ${impactBoard.toFixed(1)}枚目<br><br>
+    ${message}
+    `;
+}
+</script>
+
+</body>
+</html>
